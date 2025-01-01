@@ -1,0 +1,30 @@
+ end_exit() done
+ Thread func1 started
+ my_global_resource 0 by the enter of th func1.
+ Lock acquired in func1
+ Lock released in func1
+ start_init() done
+ Thread func2 started
+ my_global_resource 1 by the enter of th func2.
+ Lock acquired in func2
+ Lock released in func2
+ Lock acquired in func2
+ Lock released in func2
+ Lock acquired in func1
+ Unable to hold lock in func2
+ Lock released in func1
+ Unable to hold lock in func2
+ Lock acquired in func1
+ Lock released in func1
+ Lock acquired in func1
+ Unable to hold lock in func2
+ Lock released in func1
+ Lock acquired in func1
+ Unable to hold lock in func2
+ Lock released in func1
+ Lock acquired in func2
+ my_global_resource 6703 by the exit of th func1.
+ Lock released in func2
+ Thread stopped via kthread_stop(thread1)
+ my_global_resource 6699 by the exit of th func2.
+ Thread stopped via kthread_stop(thread2)

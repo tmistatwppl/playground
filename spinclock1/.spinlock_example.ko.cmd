@@ -1,0 +1,1 @@
+savedcmd_/home/tommy/src/spinclock1/spinlock_example.ko := ld -r -m elf_x86_64 -z noexecstack --build-id=sha1  -T scripts/module.lds -o /home/tommy/src/spinclock1/spinlock_example.ko /home/tommy/src/spinclock1/spinlock_example.o /home/tommy/src/spinclock1/spinlock_example.mod.o;  make -f ./arch/x86/Makefile.postlink /home/tommy/src/spinclock1/spinlock_example.ko

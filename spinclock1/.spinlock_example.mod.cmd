@@ -1,0 +1,1 @@
+savedcmd_/home/tommy/src/spinclock1/spinlock_example.mod := printf '%s\n'   spinlock_example.o | awk '!x[$$0]++ { print("/home/tommy/src/spinclock1/"$$0) }' > /home/tommy/src/spinclock1/spinlock_example.mod

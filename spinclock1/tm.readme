@@ -1,0 +1,117 @@
+pisze readme po kilku miesiacach nie uzywania tego kodu
+
+to jest wersja mojego testowego moduly kernelowego
+na bazie przykladu online
+
+stawiam tutaj spinlocki na kthreadach, ktore probuje pisac do globalnej zmiennej ( global resource )
+
+loguje do dmesg
+
+modul jest zdefiniowany zgodnie z bkm, licencja, nazwa, opis
+modul laduje sie wyladowuje tak jak moduly kernelowe, trzeba uwazac zeby ladowac lokalny ko
+tutaj jest zalozone git repo z fajnie udokumentowana historia zmian - kudos tm :-)
+
+odpalam vscode via terminal code
+potem open workspace from file w katalogu spinlock1
+
+w katalogu mam Makefile, wywolanie make probuje budowac modul na bazie headers kernela 5.13.0-27.generic
+i to sie udaje na ubuntu 18.04 z :
+$ uname -a
+Linux tommy-HPe 5.13.0-27-generic #29~20.04.1 SMP Sat Jan 22 18:48:34 CET 2022 x86_64 x86_64 x86_64 GNU/Linux
+
+build ok
+
+
+teraz test
+sudo su
+dmesg -C 
+# insmod /home/tommy/src/spinclock1/spinlock_example.ko 
+dmesg
+
+[ 2285.441199] tm spinlock:  module initialized. params values mparam_int1=1 mparam_str1=(null)
+[ 2285.441211] tm spinlock:  my_loc initialized
+[ 2285.441409] tm spinlock:  Thread func1 started
+[ 2285.441418] tm spinlock:  my_global_resource 1000 by the enter of th func1.
+[ 2285.441425] tm spinlock:  Lock acquired in func1
+[ 2285.441428] tm spinlock:  Lock released in func1
+[ 2285.441589] tm spinlock:  start_init() done
+[ 2285.441595] tm spinlock:  Thread func2 started
+[ 2285.441602] tm spinlock:  my_global_resource 1002 by the enter of th func2.
+[ 2285.441607] tm spinlock:  Lock acquired in func2
+[ 2285.441609] tm spinlock:  Lock released in func2
+[ 2286.474624] tm spinlock:  Lock acquired in func1
+[ 2286.474627] tm spinlock:  Lock released in func1
+[ 2286.571075] tm spinlock:  Lock acquired in func2
+[ 2286.571085] tm spinlock:  Lock released in func2
+[ 2287.498579] tm spinlock:  Lock acquired in func1
+[ 2287.498588] tm spinlock:  Lock released in func1
+[ 2287.690707] tm spinlock:  Lock acquired in func2
+
+
+# cat /sys/module/spinlock_example/parameters/mparam_int1 
+1000
+<dmesg>
+[ 2433.930204] tm spinlock:  Lock acquired in func1
+[ 2433.930214] tm spinlock:  Lock released in func1
+[ 2434.409741] tm spinlock:  Lock acquired in func2
+[ 2434.409751] tm spinlock:  Lock released in func2
+[ 2434.638765] tm spinlock:  tm_param_get_int called to returm mparam_int1 and its value is 1
+[ 2434.638780] tm spinlock:  taking the lock here and reading my_global_resource=-44 
+[ 2434.953793] tm spinlock:  Lock acquired in func1
+[ 2434.953803] tm spinlock:  Lock released in func1
+[ 2435.529755] tm spinlock:  Lock acquired in func2
+
+
+# rmmod spinlock_example.ko 
+<dmesg>
+[ 2487.177442] tm spinlock:  Lock released in func1
+[ 2488.169711] tm spinlock:  Lock acquired in func2
+[ 2488.169716] tm spinlock:  Lock released in func2
+[ 2488.201723] tm spinlock:  Lock acquired in func1
+[ 2488.201733] tm spinlock:  Lock released in func1
+[ 2489.225786] tm spinlock:  my_global_resource -408 by the exit of th func1.
+[ 2489.225886] tm spinlock:  Thread stopped via kthread_stop(thread1)
+[ 2489.277542] tm spinlock:  my_global_resource -408 by the exit of th func2.
+[ 2489.277641] tm spinlock:  Thread stopped via kthread_stop(thread2)
+[ 2489.277650] tm spinlock:  params values mparam_int1=1 mparam_str1=(null) at end_exit()
+,
+
+# insmod /home/tommy/src/spinclock1/spinlock_example.ko mparam_int1=777 mparam_str1="to jest string param"
+
+<dmesg>
+[ 2707.751156] tm spinlock:  taking lock to set mparam_int1 and reset my_global_resource to 10000
+[ 2707.751159] tm spinlock:  mparam_int1=777 by exit of tm_param_set_int
+[ 2707.751165] spinlock_example: unknown parameter 'jest' ignored
+[ 2707.751169] spinlock_example: unknown parameter 'string' ignored
+[ 2707.751172] spinlock_example: unknown parameter 'param' ignored
+[ 2707.751298] tm spinlock:  module initialized. params values mparam_int1=777 mparam_str1=to
+[ 2707.751302] tm spinlock:  my_loc initialized
+[ 2707.751565] tm spinlock:  Thread func1 started
+[ 2707.751571] tm spinlock:  my_global_resource 10000 by the enter of th func1.
+[ 2707.751575] tm spinlock:  Lock acquired in func1
+[ 2707.751577] tm spinlock:  Lock released in func1
+[ 2707.751654] tm spinlock:  start_init() done
+[ 2707.751667] tm spinlock:  Thread func2 started
+[ 2707.751673] tm spinlock:  my_global_resource 10002 by the enter of th func2.
+[ 2707.751678] tm spinlock:  Lock acquired in func2
+[ 2707.751680] tm spinlock:  Lock released in func2
+[ 2708.776624] tm spinlock:  Lock acquired in func1
+[ 2708.776628] tm spinlock:  Lock released in func1
+
+
+#echo 100 > /sys/modules/spinlock_example/parameters/mparam_int1
+<dmesg>
+[ 2985.256299] tm spinlock:  Lock released in func1
+[ 2985.512315] tm spinlock:  Lock acquired in func2
+[ 2985.512325] tm spinlock:  Lock released in func2
+[ 2985.745943] tm spinlock:  tm_param_set_int called to set mparam_int1 to new value 2222
+[ 2985.745958] tm spinlock:  no changes made, mparam_int1=777 by exit of tm_param_set_int
+[ 2986.280005] tm spinlock:  Lock acquired in func1
+[ 2986.280009] tm spinlock:  Lock released in func1
+
+
+# echo "a_jak_tutaj_czy_mozna" > /sys/module/spinlock_example/parameters/mparam_str1 
+root@tommy-HPe:/home/tommy/src/spinclock1# cat /sys/module/spinlock_example/parameters/mparam_str1 
+a_jak_tutaj_czy_mozna
+
+
